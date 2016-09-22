@@ -1,6 +1,10 @@
 # stores_in_mongo
 Seamlessly attach a Mongo document field to and ActiveRecord object 
 
+## IMPORTANT UPDATE
+
+There is a bug in v1.0.0 with the directory structure of the gem. Please update to 1.2.0.
+
 ## Usage
 
 In an ActiveRecord model, use
