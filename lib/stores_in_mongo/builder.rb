@@ -1,9 +1,10 @@
 module StoresInMongo
   class Builder
 
-    def initialize(model, field)
+    def initialize(model, field, data_type)
       @model = model
       @field = field.to_s
+      @data_type = data_type
     end
 
     def build
@@ -11,7 +12,7 @@ module StoresInMongo
       @model.mongo_data_field = @field
 
       document_methods = build_document_methods_module
-      @model.instance_exec(document_methods) do |document_methods|
+      @model.instance_exec(document_methods, @data_type) do |document_methods, data_type|
         const_set("MongoDocumentMethods", document_methods)
         include self::MongoDocumentMethods
 
@@ -21,7 +22,7 @@ module StoresInMongo
         mongo_klass = const_set("MongoDocument", Class.new)
         mongo_klass.include Mongoid::Document
         mongo_klass.include Mongoid::Timestamps
-        mongo_klass.field self.mongo_data_field.to_sym, :type => Hash, default: {}
+        mongo_klass.field self.mongo_data_field.to_sym, :type => data_type, default: data_type.try(:new)
       end
     end
 

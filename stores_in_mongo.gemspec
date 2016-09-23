@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'stores_in_mongo'
-  s.version     = '0.2.0'
+  s.version     = '0.3.0'
   s.date        = '2016-05-04'
   s.summary     = "Seamlessly access and store mongo document fields from an ActiveRecord object"
   s.description = "Use stores_in_mongo <field> in an ActiveRecord object, use it as if it were local. Includes ActiveRecord-like caching behavior."
