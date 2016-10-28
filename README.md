@@ -1,9 +1,17 @@
 # stores_in_mongo
 Seamlessly attach a Mongo document field to and ActiveRecord object 
 
+## What's new
+
+v1.3.1
+ - Fix bug where the `reload` method was not accepting arguments (e.g. `lock: true`).
+
+v1.3.0
+ - Allow non-Hash data structures in mongo field
+
 ## IMPORTANT UPDATE
 
-There is a bug in v1.0.0 with the directory structure of the gem. Please update to 1.2.0.
+There is a bug in v1.0.0 with the directory structure of the gem. Please update to 1.2.0 or higher.
 
 ## Usage
 

@@ -1,6 +1,6 @@
 module StoresInMongo
   module DocumentMethods
-    def reload
+    def reload(*args)
       super
       find_or_initialize_document if document_loaded?
       return self
