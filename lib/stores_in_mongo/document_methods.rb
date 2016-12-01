@@ -2,44 +2,50 @@ module StoresInMongo
   module DocumentMethods
     def reload(*args)
       super
-      find_or_initialize_document if document_loaded?
+      mongo_document(true) if mongo_document_loaded?
       return self
     end
 
-    def dup
+    def deep_dup(*args)
       copy = super
-      copy.document = document.dup if document_loaded?
+      copy.mongo_document = mongo_document.deep_dup
       return copy
+    end
+
+    protected
+
+    def mongo_document=(mongo_document)
+      @mongo_document = mongo_document
     end
 
     private
 
-    def document_loaded?
-      @document.present?
+    def mongo_document_loaded?
+      @mongo_document.present?
     end
 
-    def document(reload = false)
-      return @document if !reload && document_loaded?
-      @document = find_or_initialize_document
+    def mongo_document(reload = false)
+      return @mongo_document if !reload && mongo_document_loaded?
+      @mongo_document = fetch_mongo_document || initialize_mongo_document
     end
 
-    def save_document
-      return true if document.nil?
-      document.save
-      self.document_id = document.id
+    def fetch_mongo_document
+      self.mongo_class.where(id: self[self.mongo_key]).first
     end
 
-    def destroy_document
-      return true if document.nil?
-      document.destroy
+    def initialize_mongo_document
+      self.class::MongoDocument.new
+    end
+
+    def save_mongo_document
+      return true if !mongo_document_loaded?
+      mongo_document.save
+      self[self.mongo_key] = mongo_document.id
+    end
+
+    def destroy_mongo_document
+      return true if !mongo_document_loaded?
+      mongo_document.destroy
     end      
-
-    def find_or_initialize_document
-      @document = fetch_document || self.class::MongoDocument.new
-    end
-
-    def fetch_document
-      self.class::MongoDocument.where(id: self.document_id).first
-    end
   end
 end

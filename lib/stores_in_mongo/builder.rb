@@ -1,44 +1,53 @@
 module StoresInMongo
   class Builder
 
-    def initialize(model, field, data_type)
+    def initialize(model, mongo_class_name, foreign_key)
       @model = model
-      @field = field.to_s
-      @data_type = data_type
+      @mongo_class = mongo_class_name.present? ? mongo_class_name.constantize : build_mongo_class
+      @foreign_key = foreign_key || @mongo_class.name.foreign_key
     end
 
-    def build
-      @model.class_attribute :mongo_data_field
-      @model.mongo_data_field = @field
+    def build(&blk)
+      @model.mongo_class = @mongo_class
+      @model.mongo_key = @foreign_key
+      @model.include(get_document_methods_module)
 
-      document_methods = build_document_methods_module
-      @model.instance_exec(document_methods, @data_type) do |document_methods, data_type|
-        const_set("MongoDocumentMethods", document_methods)
-        include self::MongoDocumentMethods
-
-        before_save :save_document
-        before_destroy :destroy_document
-
-        mongo_klass = const_set("MongoDocument", Class.new)
-        mongo_klass.include Mongoid::Document
-        mongo_klass.include Mongoid::Timestamps
-        mongo_klass.field self.mongo_data_field.to_sym, :type => data_type, default: data_type.try(:new)
-      end
+      Interpreter.new(self).instance_exec(&blk)
     end
 
-    def build_document_methods_module
-      mod = Module.new
-      mod.include(StoresInMongo::DocumentMethods)
-      mod.instance_exec(@model) do |model|
-        define_method(model.mongo_data_field) do |reload = false|
-          document(reload)[model.mongo_data_field]
+    def build_mongo_class
+      klass = @model.const_set("MongoDocument", Class.new)
+      klass.include Mongoid::Document
+      klass.include Mongoid::Timestamps
+      return klass
+    end
+
+    def get_document_methods_module
+      @model.const_set("MongoDocumentMethods", Module.new)
+      @model::MongoDocumentMethods.include(StoresInMongo::DocumentMethods)
+      @model::MongoDocumentMethods.extend ActiveSupport::Concern
+      @model::MongoDocumentMethods.included do
+        before_save :save_mongo_document
+        before_destroy :destroy_mongo_document
+      end
+      return @model::MongoDocumentMethods
+    end
+
+    def add_field(field_name, data_type)
+      @model.mongo_class.field field_name, :type => data_type, default: data_type.try(:new)
+
+      @model::MongoDocumentMethods.instance_exec(field_name) do |field_name|
+        # getter
+        define_method(field_name) do
+          mongo_document[field_name]
         end
 
-        define_method(model.mongo_data_field + "=") do |data|
-          document[model.mongo_data_field] = data
+        # setter
+        define_method("#{field_name}=") do |data|
+          mongo_document[field_name] = data
         end
+
       end
-      return mod
     end
 
   end
