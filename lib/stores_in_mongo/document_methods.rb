@@ -12,6 +12,10 @@ module StoresInMongo
       return copy
     end
 
+    def changed?
+      @mongo_dirty || super
+    end
+
     protected
 
     def mongo_document=(mongo_document)
@@ -19,6 +23,16 @@ module StoresInMongo
     end
 
     private
+
+    def mark_mongo_owner_as_dirty
+      @mongo_dirty = true
+      return true
+    end
+
+    def clear_mongo_owner_dirty
+      @mongo_dirty = false
+      return true
+    end
 
     def mongo_document_loaded?
       @mongo_document.present?
@@ -34,13 +48,14 @@ module StoresInMongo
     end
 
     def initialize_mongo_document
-      self.class::MongoDocument.new
+      self.mongo_class.new
     end
 
     def save_mongo_document
       return true if !mongo_document_loaded?
       mongo_document.save
       self[self.mongo_key] = mongo_document.id
+      mark_mongo_owner_as_dirty
     end
 
     def destroy_mongo_document

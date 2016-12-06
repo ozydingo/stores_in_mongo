@@ -28,13 +28,14 @@ module StoresInMongo
       @model::MongoDocumentMethods.extend ActiveSupport::Concern
       @model::MongoDocumentMethods.included do
         before_save :save_mongo_document
+        after_save :clear_mongo_owner_dirty
         before_destroy :destroy_mongo_document
       end
       return @model::MongoDocumentMethods
     end
 
     def add_field(field_name, data_type)
-      @model.mongo_class.field field_name, :type => data_type, default: data_type.try(:new)
+      @model.mongo_class.field field_name, :type => data_type, default: data_type.try(:new) unless @model.mongo_class.fields.keys.include?(field_name.to_s)
 
       @model::MongoDocumentMethods.instance_exec(field_name) do |field_name|
         # getter
