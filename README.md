@@ -41,7 +41,7 @@ end
 
 ## What's new
 
-v2.0.0
+v1.0.0
  - Block syntax, allowing multiple fields
  - Add options to specify existing class and foreign_key column name
  - Remove `dup` override in favor of more aggressive `deep_dup` implementation.
@@ -50,7 +50,7 @@ v2.0.0
 
  NOTE: to upgrade to v2.0 from previous versions, you will either have to migrate your database to rename the `document_id` column to `mongo_document_id`, or else provide `foreign_key: "document_id"` as an argument to `stores_in_mongo`.
 
-v1.3.0
+v0.3.0
  - Allow non-Hash data types
 
 ## Detailed spec
