@@ -52,5 +52,13 @@ module StoresInMongo
       end
     end
 
+    def define_session(&blk)
+      @model::MongoDocumentMethods.instance_exec(blk) do |blk|
+        define_method("mongo_session") do
+          instance_exec(&blk)
+        end
+      end
+    end
+
   end
 end
