@@ -1,5 +1,21 @@
 module StoresInMongo
   module DocumentMethods
+    def mongo_class_name
+      if self.stores_in_mongo_options[:polymorphic]
+        self.public_send(self.stores_in_mongo_options[:class_name])
+      else
+        self.stores_in_mongo_options[:class_name]
+      end
+    end
+
+    def mongo_class
+      mongo_class_name.constantize
+    end
+
+    def mongo_key
+      self.public_send(stores_in_mongo_options[:foreign_key])
+    end
+
     def reload(*args)
       super
       mongo_document(true) if mongo_document_loaded?
@@ -44,17 +60,17 @@ module StoresInMongo
     end
 
     def fetch_mongo_document
-      self.mongo_class.where(id: self[self.mongo_key]).first
+      mongo_class.where(id: mongo_key).first
     end
 
     def initialize_mongo_document
-      self.mongo_class.new
+      mongo_class.new
     end
 
     def save_mongo_document
       return true if !mongo_document_loaded?
       mongo_document.save
-      self[self.mongo_key] = mongo_document.id
+      mongo_key = mongo_document.id
       mark_mongo_owner_as_dirty
     end
 
