@@ -9,7 +9,7 @@ module StoresInMongo
     end
 
     def mongo_class
-      mongo_class_name.constantize
+      mongo_class_name.constantize.with(session: mongo_session)
     end
 
     def mongo_key
