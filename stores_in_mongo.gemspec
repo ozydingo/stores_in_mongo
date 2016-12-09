@@ -1,9 +1,9 @@
 Gem::Specification.new do |s|
   s.name        = 'stores_in_mongo'
-  s.version     = '0.3.1'
+  s.version     = '1.0.0'
   s.date        = '2016-05-04'
-  s.summary     = "Seamlessly access and store mongo document fields from an ActiveRecord object"
-  s.description = "Use stores_in_mongo <field> in an ActiveRecord object, use it as if it were local. Includes ActiveRecord-like caching behavior."
+  s.summary     = "Seamlessly interact with mongo storage as fields of an ActiveRecord model"
+  s.description = "Define new or provide existing Mongoid::Document classes that access a mongo db, use the mongo connection for persistence of specified virtual fields in an ActiveRecord model. Document creation, persistence, and reloading is handled automatically and highly customizeable."
   s.authors     = ["Andrew Schwartz"]
   s.email       = 'ozydingo@gmail.com'
   s.files       = Dir["lib/**/*"]

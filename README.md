@@ -24,7 +24,7 @@ This setup requires the `transcript` table to have a `String` column called `mon
 
 You can then use `Transcript#words` as if it were a field of `Transcript`. This is functionally similar to defining a `has_one_document` association using a gem such as [active_mongoid](https://github.com/sportngin/active_mongoid), but this implementation allows developers to skip any fussing with a separate object, instead treating the data as a native field. Here, the `words` field is saved with the model, reloaded with the model, destroyed with the model, and deep_dup'd with the model. Data is loaded on-demand, meaning you don't have to worry about slow performance due to loading from an external Mongo database unless you're actually referencing the data.
 
-You can specify multiple fields in a single model using block syntax:
+You can specify multiple fields and additional options in a single model using block syntax:
 
 ```ruby
 class Transcript < ActiveRecord::Base
@@ -63,7 +63,7 @@ There are two ways you can call `stores_in_mongo`:
  - Inline (quick) syntax, which allows only a single field
  `stores_in_mongo(field_name, data_type = nil, **options)`
 
- - Block syntax, which allows mutliple fields
+ - Block syntax, which allows mutliple fields and additional options
  ```ruby
  stores_in_mongo(**options) do
   field field_name_1, data_type_1 = nil
@@ -77,12 +77,26 @@ There are two ways you can call `stores_in_mongo`:
  - `data_type` (default: `nil`): a data type (class), such as `Hash` or `Array`, that you could pass as `type` to a `Mongoid` class. This argument can only be used with inline syntax.
  - `:class_name` (default: `nil`): provide an existing Mongoid class instead of having `stores_in_mongo` define one on the fly. This class must already exist (or be auto-loadable) by the time this code executes.
  - `:foreign_key` (default: `class_name.foreign_key`): specify the column of the model that holds the id of the mongo document. This will be `mongo_document_id` by default if the `class_name` argument is also not specified. If `class_name` is specified to be, for example, `"Transcript"`, this will be `transcript_id` by default.
+ - `:as`: `String` specifying a polymorphic association to the Mongoid class. E.g. `as: "document"` will tell `stores_in_mongo` to look for the columns `document_type` and `document_id` to fetch and persist the Mongo document associated with this record. You cannot use this option with `:class_name` or `:foreign_key` options.
 
-Inside the block, the `field` method takes the same two args as inline syntax:
- - `field_name`
- - `data_type` (default: `nil`)
+### Inside the block
+The block passed to `stores_in_mongo` currently accepts two methods:
+- `field(name, data_type=nil)`: same as inline syntax, but you can call this multiple times to define multiple fields.
+- `session do ... end`: define an inline method that determines which mongoid session to use for a given model. This is useful if you need to store sensitive documents in different locations depending on instance attributes (e.g. client), but don't want to have to define polymorphic active-mongoid associations to the document classes and carry around all that bookeeping. For example:
 
-### Further details
+```ruby
+stores_in_mongo do
+  field :name
+  field :interview
+  session do
+    self.protected_client? ? "secure" : "default"
+  end
+end
+```
+
+This setup uses the `secure` session in your mongoid.yml file if `self.protected_client?` returns `true` for a given record, and `default` otherwise. For more, see the Mongoid docs on [custom persistence](https://docs.mongodb.com/ruby-driver/master/tutorials/5.1.0/mongoid-persistence/#custom).
+
+### Other details
 
 Setting fields assigns them in memory, but you need to `save` your object before these are persisted to the Mongo database.
 
@@ -94,6 +108,8 @@ or
 Calling `reload` on your object will reload the Mongo fields as well (but only if the document has already been loaded, saving performance when this behavior is not needed)
 
 Calling `deep_dup` on your object will load the document if not already loaded and `deep_dup` it.
+
+Changing the document data will cause Rails to update the `updated_at` field on save, if appropriate. `stores_in_mongo` does this by overriding the `dirty` method to also check for possible changes to the mongo document. Currently, we do not have a good way for detecting in-place changes to the document, so your model will always be marked as dirty if the document has been loaded.
 
 Methods defined by `stores_in_mongo` are owned by a dynamically created module `model::MongoDocumentMethods`, where `model` is the class that called `stores_in_mongo`. Thus you can override these in your model and still have access to `super` if you would like to hook into the document creation, loading, or saving.
 
