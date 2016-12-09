@@ -35,7 +35,11 @@ module StoresInMongo
     protected
 
     def mongo_document=(mongo_document)
+      # We can't easily determine in-place data modification, so always mark as dirty if data has been loaded
+      # TODO: only mark as dirty if data has actually changed. Clear dirty on a fresh load.
+      mark_mongo_owner_as_dirty
       @mongo_document = mongo_document
+      set_mongo_document_id
     end
 
     private
@@ -54,9 +58,14 @@ module StoresInMongo
       @mongo_document.present?
     end
 
+    def set_mongo_document_id
+      assign_attributes(stores_in_mongo_options[:class_name] => mongo_document.class.name) if self.stores_in_mongo_options[:polymorphic]
+      assign_attributes(stores_in_mongo_options[:foreign_key] => mongo_document.id)
+    end
+
     def mongo_document(reload = false)
       return @mongo_document if !reload && mongo_document_loaded?
-      @mongo_document = fetch_mongo_document || initialize_mongo_document
+      self.mongo_document = fetch_mongo_document || initialize_mongo_document
     end
 
     def fetch_mongo_document
@@ -70,8 +79,7 @@ module StoresInMongo
     def save_mongo_document
       return true if !mongo_document_loaded?
       mongo_document.save
-      mongo_key = mongo_document.id
-      mark_mongo_owner_as_dirty
+      set_mongo_document_id
     end
 
     def destroy_mongo_document
