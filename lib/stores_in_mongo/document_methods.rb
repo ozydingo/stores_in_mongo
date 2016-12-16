@@ -17,9 +17,8 @@ module StoresInMongo
     end
 
     def reload(*args)
+      clear_mongo_cache
       super
-      mongo_document(true) if mongo_document_loaded?
-      return self
     end
 
     def deep_dup(*args)
@@ -56,6 +55,10 @@ module StoresInMongo
 
     def mongo_document_loaded?
       @mongo_document.present?
+    end
+
+    def clear_mongo_cache
+      @mongo_document = nil
     end
 
     def set_mongo_document_id
