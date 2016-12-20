@@ -39,6 +39,7 @@ module StoresInMongo
       mark_mongo_owner_as_dirty
       @mongo_document = mongo_document
       set_mongo_document_id
+      return mongo_document
     end
 
     private
@@ -64,6 +65,7 @@ module StoresInMongo
     def set_mongo_document_id
       assign_attributes(stores_in_mongo_options[:class_name] => mongo_document.class.name) if self.stores_in_mongo_options[:polymorphic]
       assign_attributes(stores_in_mongo_options[:foreign_key] => mongo_document.id)
+      return mongo_key
     end
 
     def mongo_document(reload = false)
@@ -81,8 +83,9 @@ module StoresInMongo
 
     def save_mongo_document
       return true if !mongo_document_loaded?
-      mongo_document.save
+      mongo_document.save!
       set_mongo_document_id
+      return true
     end
 
     def destroy_mongo_document
