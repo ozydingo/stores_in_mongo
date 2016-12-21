@@ -53,6 +53,7 @@ module StoresInMongo
     end
 
     def define_session(&blk)
+      @model.stores_in_mongo_options[:use_sessions] = true
       @model::MongoDocumentMethods.instance_exec(blk) do |blk|
         define_method("mongo_session") do
           instance_exec(&blk)

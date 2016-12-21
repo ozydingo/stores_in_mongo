@@ -9,7 +9,11 @@ module StoresInMongo
     end
 
     def mongo_class
-      mongo_class_name.constantize.with(session: mongo_session)
+      if self.stores_in_mongo_options[:use_sessions]
+        mongo_class_name.constantize.with(session: mongo_session)
+      else
+        mongo_class_name.constantize
+      end
     end
 
     def mongo_key

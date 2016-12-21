@@ -18,7 +18,8 @@ module StoresInMongo
         self.stores_in_mongo_options = {
           polymorphic: as.present?,
           foreign_key: foreign_key,
-          class_name: class_name
+          class_name: class_name,
+          use_sessions: false
         }
         builder = ::StoresInMongo::Builder.new(self)
         if field_name.present?
