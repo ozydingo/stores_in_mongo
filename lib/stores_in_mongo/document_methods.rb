@@ -2,7 +2,7 @@ module StoresInMongo
   module DocumentMethods
     def mongo_class_name
       if self.stores_in_mongo_options[:polymorphic]
-        self.public_send(self.stores_in_mongo_options[:class_name])
+        self.public_send(mongo_class_column)
       else
         self.stores_in_mongo_options[:class_name]
       end
@@ -13,7 +13,15 @@ module StoresInMongo
     end
 
     def mongo_key
-      self.public_send(stores_in_mongo_options[:foreign_key])
+      self.public_send(mongo_key_column)
+    end
+
+    def mongo_class_column
+      self.stores_in_mongo_options[:polymorphic] && self.stores_in_mongo_options[:class_name]
+    end
+
+    def mongo_key_column
+      stores_in_mongo_options[:foreign_key]
     end
 
     def reload(*args)
