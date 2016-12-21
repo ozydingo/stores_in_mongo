@@ -2,7 +2,7 @@ module StoresInMongo
   module DocumentMethods
     def mongo_class_name
       if self.stores_in_mongo_options[:polymorphic]
-        self.public_send(mongo_class_column)
+        self.public_send(mongo_class_column) or raise RuntimeError, "No mongo type specified in #{mongo_class_column} for #{self}! Initialize your model with a value or use a column default."
       else
         self.stores_in_mongo_options[:class_name]
       end
