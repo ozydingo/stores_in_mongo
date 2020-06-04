@@ -80,8 +80,13 @@ module StoresInMongo
       return mongo_key
     end
 
-    def mongo_document(reload = false)
-      return @mongo_document if !reload && mongo_document_loaded?
+    def reload_mongo_document
+      @mongo_document = nil
+      mongo_document
+    end
+
+    def mongo_document
+      return @mongo_document if mongo_document_loaded?
       self.mongo_document = fetch_mongo_document || initialize_mongo_document
     end
 
@@ -103,6 +108,6 @@ module StoresInMongo
     def destroy_mongo_document
       return true if !mongo_document_loaded?
       mongo_document.destroy
-    end      
+    end
   end
 end
